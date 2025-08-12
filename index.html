@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyrock Radio</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url(''); 
+            background-size: cover;
+            background-position: center;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        .radio-player {
+            background: rgba(255, 255, 255, 0); /* Fond transparent */
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 30px rgba(255, 0, 100, 0.5);
+            backdrop-filter: blur(20px);
+            text-align: center;
+            width: 90%; /* Utilisation d'une largeur responsive */
+            max-width: 350px; /* Largeur maximum pour les écrans plus grands */
+            border: 2px solid rgba(255, 0, 100, 0.5); /* Bordure semi-transparente */
+        }
+
+        h1 {
+            color: #ff0064; 
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ff0064; 
+        }
+
+        audio {
+            display: none; 
+        }
+
+        .controls {
+            margin-top: 10px;
+        }
+
+        button {
+            background: rgba(255, 0, 100, 0.2);
+            border: 2px solid #ff0064;
+            border-radius: 5px;
+            color: #ff0064; 
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: rgba(255, 0, 100, 0.5);
+            transform: scale(1.05);
+        }
+
+        .cover {
+            margin: 15px 0;
+        }
+
+        .cover img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 2px solid #ff0064; 
+        }
+
+        label {
+            color: #000000; 
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Media Queries pour les petits écrans */
+        @media (max-width: 480px) {
+            button {
+                width: 100%;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="radio-player">
+        <h1 id="radioTitle">Skyrock</h1>
+        <div class="cover">
+            <img id="logoImage" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Skyrock_logo.svg/1200px-Skyrock_logo.svg.png" alt="Logo Skyrock">
+        </div>
+        <audio id="audio" preload="auto">
+            <source id="audioSource" src="https://icecast.skyrock.net/s/natio_mp3_128k" type="audio/mpeg">
+            Votre navigateur ne supporte pas l'élément audio.
+        </audio>
+        <div>
+            <label for="radioSelect">Choisir une station:</label>
+            <select id="radioSelect">
+                <option value="https://icecast.skyrock.net/s/natio_mp3_128k">Skyrock</option>
+                <option value="https://icecast.skyrock.net/s/francais_aac_128k">Skyrock 100% Français</option>
+                <option value="https://icecast.skyrock.net/s/nocturne_aac_128k">Skyrock La Nocturne</option>
+                <option value="https://icecast.skyrock.net/s/plm_aac_128k">Skyrock PLM</option>
+                <option value="https://icecast.skyrock.net/s/hit_us_aac_128k">Skyrock Hit US</option>
+            </select>
+        </div>
+        <div class="controls">
+            <button id="play" class="play">▶</button>
+            <button id="pause" class="pause">⏸</button>
+            <button id="stop" class="stop">■</button>
+        </div>
+        <div>
+            <label for="volumeControl">Volume:</label>
+            <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div>
+            <label for="colorSelect">Choisir une couleur:</label>
+            <select id="colorSelect">
+                <option value="pink">Rose Skyrock</option>
+                <option value="blue">Bleu</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const audioSource = document.getElementById('audioSource');
+        const playButton = document.getElementById('play');
+        const pauseButton = document.getElementById('pause');
+        const stopButton = document.getElementById('stop');
+        const radioSelect = document.getElementById('radioSelect');
+        const radioTitle = document.getElementById('radioTitle');
+        const colorSelect = document.getElementById('colorSelect');
+        const radioPlayer = document.querySelector('.radio-player');
+        const volumeControl = document.getElementById('volumeControl');
+        const buttons = document.querySelectorAll('button');
+        const h1 = document.querySelector('h1');
+
+        radioSelect.addEventListener('change', () => {
+            const selectedValue = radioSelect.value;
+            audioSource.src = selectedValue;
+            audio.load(); 
+            radioTitle.textContent = radioSelect.options[radioSelect.selectedIndex].text; 
+        });
+
+        playButton.addEventListener('click', () => {
+            audio.play();
+        });
+
+        pauseButton.addEventListener('click', () => {
+            audio.pause();
+        });
+
+        stopButton.addEventListener('click', () => {
+            audio.pause();
+            audio.currentTime = 0; 
+        });
+
+        volumeControl.addEventListener('input', () => {
+            audio.volume = volumeControl.value;
+        });
+
+        colorSelect.addEventListener('change', () => {
+            const selectedColor = colorSelect.value;
+            if (selectedColor === 'pink') {
+                radioPlayer.style.border = '2px solid #ff0064';
+                radioPlayer.style.boxShadow = '0 4px 30px rgba(255, 0, 100, 0.5)';
+                h1.style.color = '#ff0064';
+                h1.style.textShadow = '0 0 10px #ff0064';
+                buttons.forEach(button => {
+                    button.style.border = '2px solid #ff0064';
+                    button.style.color = '#ff0064';
+                    button.style.background = 'rgba(255, 0, 100, 0.2)';
+                });
+                document.querySelector('.cover img').style.border = '2px solid #ff0064';
+            } else if (selectedColor === 'blue') {
+                radioPlayer.style.border = '2px solid #0066ff';
+                radioPlayer.style.boxShadow = '0 4px 30px rgba(0, 102, 255, 0.5)';
+                h1.style.color = '#0066ff';
+                h1.style.textShadow = '0 0 10px #0066ff';
+                buttons.forEach(button => {
+                    button.style.border = '2px solid #0066ff';
+                    button.style.color = '#0066ff';
+                    button.style.background = 'rgba(0, 102, 255, 0.2)';
+                });
+                document.querySelector('.cover img').style.border = '2px solid #0066ff';
+            }
+        });
+    </script>
+</body>
+</html>
+
