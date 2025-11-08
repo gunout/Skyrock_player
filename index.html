@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skyrock Radio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -11,9 +13,9 @@
             justify-content: center;
             align-items: center;
             height: 100vh; 
-            background: #000000; /* Fond noir uni */
+            background: #000000;
             color: #ffffff;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Orbitron', sans-serif;
             overflow: hidden;
         }
         .background-text {
@@ -22,20 +24,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            font-size: 7px;
-            font-weight: bold;
+            font-size: 1px;
+            font-weight: 700;
             line-height: 1;
-            font-family: orbitron;
+            font-family: 'Orbitron', sans-serif;
             pointer-events: none;
-            z-index: 1; /* Maintenant au-dessus du body */
-            opacity: 0.; /* Opacité augmentée */
+            z-index: 1;
+            opacity: 0.;
             overflow: hidden;
             padding: 0px;
             box-sizing: border-box;
             white-space: pre;
         }
         .radio-player {
-            background: rgba(0, 0, 0, 0.6); /* Fond semi-transparent assombri */
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 30px rgba(255, 0, 100, 0.5);
@@ -44,14 +46,17 @@
             width: 90%;
             max-width: 350px;
             border: 2px solid rgba(255, 0, 100, 0.5);
-            z-index: 2; /* Au-dessus du background-text */
-            position: relative; /* Nécessaire pour z-index */
+            z-index: 2;
+            position: relative;
+            font-family: 'Orbitron', sans-serif;
         }
 
         h1 {
             color: #ff0064; 
             margin-bottom: 20px;
-            text-shadow: 0 0 10px #ff0064; 
+            text-shadow: 0 0 10px #ff0064;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
         }
 
         audio {
@@ -72,6 +77,8 @@
             cursor: pointer;
             transition: background 0.3s, transform 0.2s;
             font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
         }
 
         button:hover {
@@ -90,9 +97,10 @@
         }
 
         label {
-            color: #ffffff; /* Changé pour meilleur contraste */
+            color: #ffffff;
             display: block;
             margin-top: 10px;
+            font-family: 'Orbitron', sans-serif;
         }
 
         /* Media Queries pour les petits écrans */
