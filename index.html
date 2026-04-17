@@ -23,13 +23,40 @@
 
         body {
             min-height: 100vh;
-            background: radial-gradient(circle at 30% 20%, #1a000a, #000000);
+            background: #000000;
             font-family: 'Share Tech Mono', monospace;
             overflow: hidden;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* === BACKGROUND IMAGE (skyrock.png) === */
+        .bg-skyrock {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://github.com/gunout/Skyrock_player/blob/main/skyrock.jpg?raw=true');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -2;
+            filter: brightness(0.35) contrast(1.2);
+        }
+
+        /* Overlay sombre pour lisibilité du HUD */
+        .dark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         /* === GRILLE HUD CYBERPUNK === */
@@ -134,7 +161,7 @@
             width: 320px;
             height: 320px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, rgba(30, 0, 15, 0.9), rgba(8, 0, 4, 0.95));
+            background: radial-gradient(circle at 35% 35%, rgba(30, 0, 15, 0.85), rgba(8, 0, 4, 0.95));
             border: 1.5px solid var(--neon-red);
             box-shadow: 0 0 45px rgba(255, 0, 60, 0.4), inset 0 0 20px rgba(255, 0, 60, 0.2);
             backdrop-filter: blur(4px);
@@ -460,6 +487,10 @@
 </head>
 <body>
 
+<!-- BACKGROUND skyrock.png -->
+<div class="bg-skyrock"></div>
+<div class="dark-overlay"></div>
+
 <div class="hud-grid"></div>
 <div class="scanlines"></div>
 <div class="vignette"></div>
@@ -571,7 +602,6 @@
         // Fonction pour mettre à jour le visualiseur (simulation audio réaliste)
         function updateVisualizer() {
             if (!isPlaying) {
-                // si en pause, toutes les barres au minimum
                 bars.forEach(bar => {
                     bar.style.height = '6px';
                     bar.style.opacity = '0.3';
@@ -581,10 +611,8 @@
                 return;
             }
             
-            // simulation de l'intensité du flux audio (basée sur le temps + random doux)
             let intensity = 0;
             if (audio && !audio.paused && audio.currentTime > 0) {
-                // Simule des fluctuations plus organiques
                 const t = Date.now() / 280;
                 intensity = (Math.sin(t) * 0.3 + Math.sin(t * 2.3) * 0.2 + 0.4);
                 intensity = Math.min(0.95, Math.max(0.25, intensity));
@@ -592,7 +620,6 @@
                 intensity = 0.2;
             }
             
-            // update chaque barre avec des variations
             for (let i = 0; i < BAR_COUNT; i++) {
                 let phase = (i / BAR_COUNT) * Math.PI * 2;
                 let variation = Math.sin(Date.now() * 0.008 + phase) * 0.4;
@@ -606,7 +633,6 @@
             animationFrame = requestAnimationFrame(updateVisualizer);
         }
         
-        // Simulation métriques bitrate/latency/peak (pour le style HUD)
         function startDataSimulation() {
             if (dataInterval) clearInterval(dataInterval);
             dataInterval = setInterval(() => {
@@ -623,7 +649,6 @@
             }, 980);
         }
         
-        // Mise à jour du titre / fréquences en fonction de la station
         function updateStationMeta() {
             const selectedText = stationSelect.options[stationSelect.selectedIndex].text;
             let clean = selectedText.split('//')[0].trim();
@@ -644,7 +669,6 @@
             freqTagSpan.textContent = freqMap[key] || '99.9 MHz // LIVE';
         }
         
-        // Changer de station
         function changeStation() {
             const newSrc = stationSelect.value;
             const wasPlaying = isPlaying;
@@ -665,20 +689,17 @@
                     liveStatusSpan.textContent = 'STANDBY';
                 });
             } else {
-                // si arrêté
                 if (animationFrame) cancelAnimationFrame(animationFrame);
                 animationFrame = null;
                 bars.forEach(b => { b.style.height = '6px'; b.style.opacity = '0.2'; });
             }
         }
         
-        // Volume
         function setVolume(val) {
             audio.volume = val;
             volFill.style.width = (val * 100) + '%';
         }
         
-        // Gestion Play/Pause
         function togglePlay() {
             if (audio.paused) {
                 audio.play().then(() => {
@@ -707,7 +728,6 @@
             }
         }
         
-        // Gestion d'erreur de flux + reconnexion douce
         audio.addEventListener('error', () => {
             if (isPlaying) {
                 liveStatusSpan.textContent = 'LOSS SIGNAL';
@@ -743,26 +763,18 @@
             if(isPlaying) liveStatusSpan.textContent = 'ONLINE // TX';
         });
         
-        // Event listeners
         playBtn.addEventListener('click', togglePlay);
-        stationSelect.addEventListener('change', () => {
-            changeStation();
-        });
-        volumeSlider.addEventListener('input', (e) => {
-            setVolume(parseFloat(e.target.value));
-        });
+        stationSelect.addEventListener('change', changeStation);
+        volumeSlider.addEventListener('input', (e) => setVolume(parseFloat(e.target.value)));
         
-        // initialisation
         audio.volume = 0.75;
         setVolume(0.75);
         updateStationMeta();
         startDataSimulation();
-        // par défaut visu inactif car stop
         coreModule.classList.add('paused-mode');
         bars.forEach(b => { b.style.height = '6px'; b.style.opacity = '0.2'; });
         liveStatusSpan.textContent = 'STANDBY';
         
-        // petite simulation de peak aléatoire pour le style (même à l'arrêt) + effet led
         setInterval(() => {
             if (!isPlaying && peakSpan) {
                 let idle = (Math.random() * 0.8).toFixed(1);
@@ -770,7 +782,6 @@
             }
         }, 1100);
         
-        // effet glitch périodique sur le container (optionnel)
         setInterval(() => {
             if (isPlaying) {
                 coreModule.style.transform = 'translateY(0px)';
