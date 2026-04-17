@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SKYROCK // HUD NÉON ROUGE // INTERFACE COMBAT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-red: #ff003c;
+            --neon-crimson: #ff1a4f;
+            --dark-bg: #0a0005;
+            --glow-red: rgba(255, 0, 60, 0.6);
+            --glow-pulse: rgba(255, 0, 60, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 30% 20%, #1a000a, #000000);
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* === GRILLE HUD CYBERPUNK === */
+        .hud-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, rgba(255, 0, 60, 0.08) 0px, rgba(255, 0, 60, 0.08) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, rgba(255, 0, 60, 0.08) 0px, rgba(255, 0, 60, 0.08) 1px, transparent 1px, transparent 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* === SCANLINES === */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 2px, transparent 2px, transparent 6px);
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.5;
+        }
+
+        /* === VIGNETTE === */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* === CONTAINER PRINCIPAL HUD ROTATIF === */
+        .hud-main {
+            position: relative;
+            width: 520px;
+            height: 520px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* Anneaux orbitaux futuristes */
+        .orbit-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 0, 60, 0.4);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.2), inset 0 0 8px rgba(255, 0, 60, 0.1);
+        }
+
+        .ring-outer {
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(255, 30, 80, 0.5);
+            animation: spin-slow 25s linear infinite;
+        }
+
+        .ring-mid {
+            width: 82%;
+            height: 82%;
+            border: 2px solid rgba(255, 0, 60, 0.3);
+            border-top-color: var(--neon-red);
+            border-right-color: transparent;
+            animation: spin-reverse 18s linear infinite;
+        }
+
+        .ring-inner {
+            width: 64%;
+            height: 64%;
+            border: 1px solid rgba(255, 50, 100, 0.5);
+            border-left-color: var(--neon-red);
+            border-bottom-color: transparent;
+            animation: spin-slow 12s linear infinite;
+        }
+
+        .ring-dots {
+            width: 46%;
+            height: 46%;
+            border: 1px dotted rgba(255, 0, 60, 0.6);
+            animation: spin-reverse 8s linear infinite;
+        }
+
+        @keyframes spin-slow {
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-reverse {
+            100% { transform: rotate(-360deg); }
+        }
+
+        /* === CŒUR DU PLAYER === */
+        .core-module {
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(30, 0, 15, 0.9), rgba(8, 0, 4, 0.95));
+            border: 1.5px solid var(--neon-red);
+            box-shadow: 0 0 45px rgba(255, 0, 60, 0.4), inset 0 0 20px rgba(255, 0, 60, 0.2);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Ligne de balayage verticale animée */
+        .core-module::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-red), transparent);
+            animation: radar-sweep 3.2s ease-in-out infinite;
+            filter: blur(1px);
+        }
+
+        @keyframes radar-sweep {
+            0% { top: 0%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 0.6; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Texte néon glitch */
+        .station-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #ff1a4f, #ff0055);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 12px rgba(255, 0, 60, 0.8);
+            margin-top: 20px;
+            animation: glitch 3.5s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 95%, 100% { transform: skew(0deg, 0deg); text-shadow: 0 0 8px #ff003c; }
+            96% { transform: skew(2deg, -1deg); text-shadow: -2px 0px #ff0066; }
+            98% { transform: skew(-1deg, 2deg); text-shadow: 2px 0px #ff0066; }
+        }
+
+        .freq-label {
+            font-size: 0.7rem;
+            color: #ff6680;
+            letter-spacing: 2px;
+            margin-top: 5px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* === BARRES VISUALISEUR CIRCULAIRE === */
+        .viz-circle {
+            width: 180px;
+            height: 180px;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            pointer-events: none;
+        }
+
+        .viz-bar {
+            width: 4px;
+            height: 12px;
+            background: var(--neon-red);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--neon-red);
+            transition: height 0.08s linear;
+        }
+
+        /* Mode pause : toutes les barres aplaties */
+        .paused-mode .viz-bar {
+            height: 6px !important;
+            opacity: 0.3;
+            box-shadow: none;
+        }
+
+        /* === BOUTON PLAY / PAUSE (RÉACTEUR) === */
+        .reactor-btn {
+            margin-top: 105px;
+            z-index: 25;
+        }
+
+        .neon-play {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            border: 2px solid var(--neon-red);
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.2, 1.2, 0.8, 1);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
+        }
+
+        .neon-play:hover {
+            transform: scale(1.08);
+            background: rgba(255, 0, 60, 0.2);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.8);
+        }
+
+        /* icône play */
+        .neon-play::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            border-style: solid;
+            border-width: 12px 0 12px 20px;
+            border-color: transparent transparent transparent var(--neon-red);
+            transition: all 0.2s;
+        }
+
+        /* état actif (pause) */
+        .neon-play.active {
+            border-color: #ff3366;
+            box-shadow: 0 0 25px #ff3366;
+        }
+
+        .neon-play.active::after {
+            border-width: 0;
+            width: 18px;
+            height: 24px;
+            border-left: 5px solid #ff3366;
+            border-right: 5px solid #ff3366;
+            background: transparent;
+            left: 50%;
+        }
+
+        /* === AFFICHAGES TACTIQUES === */
+        .data-panel {
+            position: absolute;
+            bottom: -30px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .metric {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border-left: 2px solid var(--neon-red);
+            font-size: 0.7rem;
+        }
+
+        .metric span:first-child {
+            color: #ff99b3;
+            font-size: 0.6rem;
+        }
+
+        .metric .val {
+            color: var(--neon-red);
+            font-weight: bold;
+            font-size: 1rem;
+            font-family: 'Orbitron', monospace;
+            text-shadow: 0 0 4px red;
+        }
+
+        /* === VOLUME HUD SLIDER === */
+        .vol-hud {
+            position: absolute;
+            bottom: -70px;
+            width: 80%;
+            left: 10%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 6px 15px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 0, 60, 0.4);
+        }
+
+        .vol-icon {
+            color: #ff4d6d;
+            font-size: 1rem;
+        }
+
+        .vol-track {
+            flex: 1;
+            height: 4px;
+            background: #2a0010;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .vol-fill {
+            width: 70%;
+            height: 100%;
+            background: var(--neon-red);
+            box-shadow: 0 0 6px var(--neon-red);
+            transition: width 0.05s linear;
+        }
+
+        input.vol-range {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        /* === SÉLECTEUR STATIONS (FUTURISTE) === */
+        .station-selector {
+            position: absolute;
+            top: -55px;
+            width: 90%;
+            left: 5%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--neon-red);
+            border-radius: 40px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 30;
+        }
+
+        .selector-label {
+            color: #ff6680;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+        }
+
+        .freq-select {
+            flex: 1;
+            background: #1a000c;
+            border: none;
+            color: #ff4d6d;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            padding: 6px 8px;
+            border-radius: 30px;
+            outline: none;
+            cursor: pointer;
+            border: 1px solid rgba(255, 0, 60, 0.5);
+        }
+
+        .freq-select option {
+            background: #0a0005;
+        }
+
+        /* === LED LIVE / INDICATEUR === */
+        .live-led {
+            position: absolute;
+            top: -20px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #0a0005aa;
+            padding: 3px 10px;
+            border-radius: 30px;
+            border: 1px solid #ff1a4f;
+        }
+
+        .led-blink {
+            width: 8px;
+            height: 8px;
+            background: #ff003c;
+            border-radius: 50%;
+            box-shadow: 0 0 8px red;
+            animation: pulse-led 1.2s infinite;
+        }
+
+        @keyframes pulse-led {
+            0% { opacity: 0.3; transform: scale(0.8);}
+            100% { opacity: 1; transform: scale(1.2);}
+        }
+
+        .live-text {
+            font-size: 0.6rem;
+            color: #ff8095;
+        }
+
+        /* === CORNERS HUD === */
+        .corner {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            border: 2px solid rgba(255, 0, 60, 0.4);
+            filter: drop-shadow(0 0 4px #ff003c);
+            z-index: 15;
+        }
+        .corner-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .corner-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+        .corner-br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+        /* Responsive */
+        @media (max-width: 560px) {
+            .hud-main { width: 400px; height: 400px; transform: scale(0.9);}
+            .core-module { width: 280px; height: 280px; }
+            .station-title { font-size: 1.2rem; letter-spacing: 3px; }
+            .viz-circle { width: 150px; top: 40px; }
+            .reactor-btn { margin-top: 85px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hud-grid"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- coins écran -->
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="hud-main">
+    <!-- anneaux orbitaux futuristes -->
+    <div class="orbit-ring ring-outer"></div>
+    <div class="orbit-ring ring-mid"></div>
+    <div class="orbit-ring ring-inner"></div>
+    <div class="orbit-ring ring-dots"></div>
+
+    <!-- module principal -->
+    <div class="core-module" id="coreModule">
+        <div class="station-title" id="stationName">SKYROCK</div>
+        <div class="freq-label" id="freqTag">[ 99.9 MHz // NEO CORE ]</div>
+
+        <!-- visualiseur circulaire (bars) -->
+        <div class="viz-circle" id="vizContainer">
+            <!-- 24 barres générées dynamiquement -->
+        </div>
+
+        <!-- Bouton play / pause style réacteur -->
+        <div class="reactor-btn">
+            <button class="neon-play" id="playPauseBtn"></button>
+        </div>
+
+        <!-- metrics data HUD -->
+        <div class="data-panel">
+            <div class="metric"><span>BITRATE</span><br><span class="val" id="bitrateVal">128</span><span style="font-size:0.6rem;"> kbps</span></div>
+            <div class="metric"><span>LATENCY</span><br><span class="val" id="latencyVal">12</span><span style="font-size:0.6rem;"> ms</span></div>
+            <div class="metric"><span>PEAK</span><br><span class="val" id="peakVal">0</span><span style="font-size:0.6rem;"> dB</span></div>
+        </div>
+    </div>
+
+    <!-- Sélecteur de station (futuriste) -->
+    <div class="station-selector">
+        <span class="selector-label">► FREQ LOCK</span>
+        <select id="stationSelect" class="freq-select">
+            <option value="https://icecast.skyrock.net/s/natio_mp3_128k">SKYROCK // MAINFRAME</option>
+            <option value="https://icecast.skyrock.net/s/francais_aac_128k">100% FRANÇAIS // HEX</option>
+            <option value="https://icecast.skyrock.net/s/nocturne_aac_128k">LA NOCTURNE // DARK</option>
+            <option value="https://icecast.skyrock.net/s/plm_aac_128k">PLM // MEDITERRANEO</option>
+            <option value="https://icecast.skyrock.net/s/hit_us_aac_128k">HIT US // ATLANTIC</option>
+        </select>
+    </div>
+
+    <!-- volume HUD -->
+    <div class="vol-hud">
+        <span class="vol-icon">◀ VOL</span>
+        <div class="vol-track" id="volTrack">
+            <div class="vol-fill" id="volFill"></div>
+            <input type="range" id="volumeSlider" class="vol-range" min="0" max="1" step="0.01" value="0.75">
+        </div>
+        <span class="vol-icon">▶</span>
+    </div>
+
+    <!-- LED live -->
+    <div class="live-led">
+        <div class="led-blink"></div>
+        <div class="live-text" id="liveStatus">STANDBY</div>
+    </div>
+</div>
+
+<audio id="audioStream" preload="metadata" crossorigin="anonymous">
+    <source id="audioSource" src="https://icecast.skyrock.net/s/natio_mp3_128k" type="audio/mpeg">
+</audio>
+
+<script>
+    (function() {
+        // Éléments DOM
+        const audio = document.getElementById('audioStream');
+        const audioSource = document.getElementById('audioSource');
+        const playBtn = document.getElementById('playPauseBtn');
+        const stationSelect = document.getElementById('stationSelect');
+        const stationNameSpan = document.getElementById('stationName');
+        const freqTagSpan = document.getElementById('freqTag');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volFill = document.getElementById('volFill');
+        const liveStatusSpan = document.getElementById('liveStatus');
+        const vizContainer = document.getElementById('vizContainer');
+        const coreModule = document.getElementById('coreModule');
+        
+        // valeurs metrics
+        const bitrateSpan = document.getElementById('bitrateVal');
+        const latencySpan = document.getElementById('latencyVal');
+        const peakSpan = document.getElementById('peakVal');
+        
+        let isPlaying = false;
+        let animationFrame = null;
+        let dataInterval = null;
+        
+        // --- Génération des barres du visualiseur (24 barres néon) ---
+        const BAR_COUNT = 24;
+        let bars = [];
+        for (let i = 0; i < BAR_COUNT; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'viz-bar';
+            bar.style.height = '6px';
+            vizContainer.appendChild(bar);
+            bars.push(bar);
+        }
+        
+        // Fonction pour mettre à jour le visualiseur (simulation audio réaliste)
+        function updateVisualizer() {
+            if (!isPlaying) {
+                // si en pause, toutes les barres au minimum
+                bars.forEach(bar => {
+                    bar.style.height = '6px';
+                    bar.style.opacity = '0.3';
+                });
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+                return;
+            }
+            
+            // simulation de l'intensité du flux audio (basée sur le temps + random doux)
+            let intensity = 0;
+            if (audio && !audio.paused && audio.currentTime > 0) {
+                // Simule des fluctuations plus organiques
+                const t = Date.now() / 280;
+                intensity = (Math.sin(t) * 0.3 + Math.sin(t * 2.3) * 0.2 + 0.4);
+                intensity = Math.min(0.95, Math.max(0.25, intensity));
+            } else {
+                intensity = 0.2;
+            }
+            
+            // update chaque barre avec des variations
+            for (let i = 0; i < BAR_COUNT; i++) {
+                let phase = (i / BAR_COUNT) * Math.PI * 2;
+                let variation = Math.sin(Date.now() * 0.008 + phase) * 0.4;
+                let h = (intensity * 36) + (variation * 14);
+                h = Math.min(44, Math.max(6, h));
+                bars[i].style.height = h + 'px';
+                bars[i].style.opacity = 0.7 + intensity * 0.3;
+                bars[i].style.background = `#ff${Math.floor(60 + intensity * 120)}${Math.floor(40 + intensity * 80)}`;
+                bars[i].style.boxShadow = `0 0 ${6 + intensity * 8}px #ff003c`;
+            }
+            animationFrame = requestAnimationFrame(updateVisualizer);
+        }
+        
+        // Simulation métriques bitrate/latency/peak (pour le style HUD)
+        function startDataSimulation() {
+            if (dataInterval) clearInterval(dataInterval);
+            dataInterval = setInterval(() => {
+                if (isPlaying) {
+                    bitrateSpan.textContent = Math.floor(122 + Math.random() * 12);
+                    latencySpan.textContent = Math.floor(8 + Math.random() * 18);
+                    let fakePeak = (Math.random() * 4.5).toFixed(1);
+                    peakSpan.textContent = fakePeak;
+                } else {
+                    bitrateSpan.textContent = '0';
+                    latencySpan.textContent = '--';
+                    peakSpan.textContent = '0';
+                }
+            }, 980);
+        }
+        
+        // Mise à jour du titre / fréquences en fonction de la station
+        function updateStationMeta() {
+            const selectedText = stationSelect.options[stationSelect.selectedIndex].text;
+            let clean = selectedText.split('//')[0].trim();
+            stationNameSpan.textContent = clean.toUpperCase();
+            const freqMap = {
+                'SKYROCK': '99.9 MHz // NEO CORE',
+                '100% FRANÇAIS': '92.4 MHz // PARIS NEO',
+                'LA NOCTURNE': '96.2 MHz // DARKWAVE',
+                'PLM': '101.1 MHz // MEDITERRANEO',
+                'HIT US': '105.7 MHz // ATLANTIC'
+            };
+            let key = clean;
+            if (clean.includes('100%')) key = '100% FRANÇAIS';
+            if (clean.includes('NOCTURNE')) key = 'LA NOCTURNE';
+            if (clean.includes('PLM')) key = 'PLM';
+            if (clean.includes('HIT US')) key = 'HIT US';
+            if (clean.includes('SKYROCK') && !clean.includes('PLM') && !clean.includes('HIT US')) key = 'SKYROCK';
+            freqTagSpan.textContent = freqMap[key] || '99.9 MHz // LIVE';
+        }
+        
+        // Changer de station
+        function changeStation() {
+            const newSrc = stationSelect.value;
+            const wasPlaying = isPlaying;
+            audioSource.src = newSrc;
+            audio.load();
+            updateStationMeta();
+            if (wasPlaying) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    playBtn.classList.add('active');
+                    liveStatusSpan.textContent = 'ONLINE // TX';
+                    coreModule.style.boxShadow = '0 0 55px rgba(255, 0, 60, 0.7)';
+                    if (!animationFrame) updateVisualizer();
+                }).catch(err => {
+                    console.warn("auto play interrompu", err);
+                    isPlaying = false;
+                    playBtn.classList.remove('active');
+                    liveStatusSpan.textContent = 'STANDBY';
+                });
+            } else {
+                // si arrêté
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+                bars.forEach(b => { b.style.height = '6px'; b.style.opacity = '0.2'; });
+            }
+        }
+        
+        // Volume
+        function setVolume(val) {
+            audio.volume = val;
+            volFill.style.width = (val * 100) + '%';
+        }
+        
+        // Gestion Play/Pause
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    playBtn.classList.add('active');
+                    liveStatusSpan.textContent = 'ONLINE // TX';
+                    coreModule.style.boxShadow = '0 0 55px rgba(255, 0, 60, 0.7)';
+                    coreModule.style.border = '1.5px solid #ff2a6d';
+                    updateVisualizer();
+                }).catch(e => {
+                    console.error(e);
+                    liveStatusSpan.textContent = 'ERROR // RETRY';
+                });
+            } else {
+                audio.pause();
+                isPlaying = false;
+                playBtn.classList.remove('active');
+                liveStatusSpan.textContent = 'PAUSED';
+                coreModule.style.boxShadow = '0 0 25px rgba(255, 0, 60, 0.3)';
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+                bars.forEach(bar => {
+                    bar.style.height = '6px';
+                    bar.style.opacity = '0.2';
+                });
+            }
+        }
+        
+        // Gestion d'erreur de flux + reconnexion douce
+        audio.addEventListener('error', () => {
+            if (isPlaying) {
+                liveStatusSpan.textContent = 'LOSS SIGNAL';
+                setTimeout(() => {
+                    if (isPlaying) {
+                        audio.load();
+                        audio.play().catch(()=>{});
+                        liveStatusSpan.textContent = 'RECONNECT';
+                    }
+                }, 1500);
+            }
+        });
+        
+        audio.addEventListener('playing', () => {
+            isPlaying = true;
+            liveStatusSpan.textContent = 'ONLINE // TX';
+            if (!animationFrame) updateVisualizer();
+        });
+        
+        audio.addEventListener('pause', () => {
+            if (audio.currentTime !== 0 || audio.paused) {
+                isPlaying = false;
+                if (!playBtn.classList.contains('active')) return;
+                liveStatusSpan.textContent = 'PAUSED';
+            }
+        });
+        
+        audio.addEventListener('waiting', () => {
+            if(isPlaying) liveStatusSpan.textContent = 'BUFFER // ...';
+        });
+        
+        audio.addEventListener('canplay', () => {
+            if(isPlaying) liveStatusSpan.textContent = 'ONLINE // TX';
+        });
+        
+        // Event listeners
+        playBtn.addEventListener('click', togglePlay);
+        stationSelect.addEventListener('change', () => {
+            changeStation();
+        });
+        volumeSlider.addEventListener('input', (e) => {
+            setVolume(parseFloat(e.target.value));
+        });
+        
+        // initialisation
+        audio.volume = 0.75;
+        setVolume(0.75);
+        updateStationMeta();
+        startDataSimulation();
+        // par défaut visu inactif car stop
+        coreModule.classList.add('paused-mode');
+        bars.forEach(b => { b.style.height = '6px'; b.style.opacity = '0.2'; });
+        liveStatusSpan.textContent = 'STANDBY';
+        
+        // petite simulation de peak aléatoire pour le style (même à l'arrêt) + effet led
+        setInterval(() => {
+            if (!isPlaying && peakSpan) {
+                let idle = (Math.random() * 0.8).toFixed(1);
+                peakSpan.textContent = idle;
+            }
+        }, 1100);
+        
+        // effet glitch périodique sur le container (optionnel)
+        setInterval(() => {
+            if (isPlaying) {
+                coreModule.style.transform = 'translateY(0px)';
+                setTimeout(() => { coreModule.style.transform = ''; }, 80);
+            }
+        }, 4700);
+    })();
+</script>
+</body>
+</html>
